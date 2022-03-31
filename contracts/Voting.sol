@@ -18,6 +18,7 @@ contract Voting {
         mapping(address => bool) alreadyVoted;
         mapping(address => bool) isCandidate;
 
+
     }
 
     mapping(string => Vote) votes;
@@ -71,17 +72,29 @@ contract Voting {
             votes[_name].win = payable(_candidate);
             votes[_name].best = votes[_name].voices[_candidate];
         }
- //       votes[_name].
+ //       if(votes[_name].voices[_candidate] == votes[_name].best && )
 
     }
 
-    function finishVote(string calldata _name) external isActive(_name) {
-        require(votes[_name].date + 3 days >= block.timestamp);
+    function finishVote(string memory _name) external isActive(_name) {
+        require(votes[_name].date + 3 days >= block.timestamp, "It's not the time");
+        require(checkWiners(_name), "There is only one winner");
         votes[_name].comission = votes[_name].total / 10 ;
         votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
         totalComission += votes[_name].comission;
         votes[_name].active = false;
         
+    }
+
+    function checkWiners(string memory _name) private returns(bool) {
+        for (uint i=0; i < votes[_name].candidates.length; i++) {
+            uint temp;
+           if (votes[_name].voices[votes[_name].candidates[i]] == votes[_name].best) {
+               temp++;
+           }
+           if(temp > 1) return false;
+        }
+        return true;
     }
 
     function getComission() external onlyOwner {
