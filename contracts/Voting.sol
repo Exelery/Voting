@@ -78,7 +78,7 @@ contract Voting {
     }
 
     function finishVote(string memory _name) external isActive(_name) {
-        require(votes[_name].date + 3 days >= block.timestamp, "It's not the time");
+        require(block.timestamp >= votes[_name].date + 3 days, "It's not the time");
         require(checkWiners(_name), "There is only one winner");
         votes[_name].comission = votes[_name].total / 10 ;
         votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
