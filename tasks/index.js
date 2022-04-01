@@ -30,7 +30,7 @@ task("vote", "choice your candidate")
         console.log(taskArgs.candidate, ' has ', await contract.showCandidateVoices(taskArgs.name, taskArgs.candidate), ' voices' )
     })
 
-task("finish Voting", "You want to end voting?")
+task("finishVoting", "You want to end voting?")
     .addParam("name", "Voting name")
     .setAction(async (taskArgs) =>{
         const Mycontract = await ethers.getContractFactory("Voting")
@@ -38,4 +38,26 @@ task("finish Voting", "You want to end voting?")
         await contract.finishVote(taskArgs.name)
         console.log("The voting ", taskArgs.name, " ends")
         console.log('The winner is ', await contract.showWinner(taskArgs.name))
+    })
+
+task("getComission", "This can withdraw all comission on owner wallet")
+    .setAction(async () =>{
+        const Mycontract = await ethers.getContractFactory("Voting")
+        const contract = await MyContract.attach(taskArgs.address)
+        console.log(ethers.utils.formatEther(await contract.showComission()), " was send to owner")
+        await contract.getComission()
+    })
+
+task("checkActive", "This show voting status")
+    .addParam("name", "Voting name")
+    .setAction(async(taskArgs) =>{
+        const Mycontract = await ethers.getContractFactory("Voting")
+        const contract = await MyContract.attach(taskArgs.address)
+        if(await contract.checkActive(taskArgs.name)) {
+            console.log("Voting ", taskArgs.name, " is active")
+        }
+        else{
+            console.log("Voting ", taskArgs.name, " is inactive")
+        }
+
     })
