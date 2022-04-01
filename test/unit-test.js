@@ -48,7 +48,6 @@ describe("Voting", function () {
 
     it("check vote", async() =>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
-     await hardhatVoting.vote("test", addr1.address, { value: ethers.utils.parseEther('0.01')})
       await hardhatVoting.connect(addr2).vote("test", addr1.address, { value: ethers.utils.parseEther('0.01')})    
      console.log(await hardhatVoting.showWinner("test"))      
 
@@ -66,10 +65,18 @@ describe("Voting", function () {
     it("should revert because it not time yet", async() =>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
       await expect( hardhatVoting.connect(addr2).finishVote("test")).to.be.revertedWith("It's not the time")
-
+ //     await expect( hardhatVoting.connect(addr2).finishVote("test")).to.be.revertedWith("There is only one winner")
 
     })
+    it("Should send comission", async() =>{
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      await hardhatVoting.vote("test", addr1.address, { value: ethers.utils.parseEther('0.01')})
+      const comission = await hardhatVoting.showComission()
+      await expect( await hardhatVoting.getComission()).to.changeEtherBalance(owner, comission)
+    })
   })
+
+
 
 
 });
