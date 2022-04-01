@@ -38,6 +38,10 @@ describe("Voting", function () {
 //      console.log(addr1.address, addr2.address)      
       expect( await hardhatVoting.showCandidates("test") + " ").to.equal([addr1.address, addr2.address] + " ")
     })
+
+    it("revert if no owner call", async() => {
+      expect(await hardhatVoting.connect(addr2).addVoting("test", [addr1.address, addr2.address])).to.be.revertedWith('You are not an owner')
+    })
   })
 
   describe("testing vote finction", function() {
@@ -51,9 +55,20 @@ describe("Voting", function () {
       expect( await hardhatVoting.showWinner("test")).to.equal(addr1.address)
     })
 
-    it("check two winn")
+    it("should be revert if voting does't exist or not active", async() => {
+      expect(await hardhatVoting.connect(addr2).vote("test", addr1.address, { value: ethers.utils.parseEther('0.01')})).to.be.revertedWith('Voting is not active')
+    })
     
 
+  })
+
+  describe("testing finish voting", function(){
+    it("should revert because it not time yet", async() =>{
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      expect(await hardhatVoting.connect(addr2).finishVote("test")).to.be.revertedWith("It's not the time")
+
+
+    })
   })
 
 
