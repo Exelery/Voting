@@ -38,6 +38,9 @@ describe("Voting", function () {
 //      console.log(addr1.address, addr2.address)      
       expect( await hardhatVoting.showCandidates("test") + " ").to.equal([addr1.address, addr2.address] + " ")
     })
+  })
+
+  describe("testing vote finction", function() {
 
     it("check vote", async() =>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
@@ -47,6 +50,8 @@ describe("Voting", function () {
 
       expect( await hardhatVoting.showWinner("test")).to.equal(addr1.address)
     })
+
+    it("check two winn")
     
 
   })

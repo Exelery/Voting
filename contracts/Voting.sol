@@ -5,6 +5,7 @@ contract Voting {
     address  payable public owner;
     uint public totalComission;
     string[] public allVotes;
+    bool isComission;
 
     struct Vote {
         address[] candidates;
@@ -83,6 +84,7 @@ contract Voting {
         votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
         totalComission += votes[_name].comission;
         votes[_name].active = false;
+        isComission = true;
         
     }
 
@@ -97,9 +99,11 @@ contract Voting {
         return true;
     }
 
-    function getComission() external onlyOwner {
+    function getComission() external onlyOwner{
+        require(isComission, "There are no end votes");
         owner.transfer(totalComission);
         totalComission = 0;
+        isComission = false;
     }
 
     function showCandidates(string memory _name) external view returns(address[] memory) {
