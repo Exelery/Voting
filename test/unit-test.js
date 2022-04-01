@@ -73,6 +73,7 @@ describe("Voting", function () {
       await hardhatVoting.vote("test", addr1.address, { value: ethers.utils.parseEther('0.01')})
       const comission = await hardhatVoting.showComission()
       await expect( await hardhatVoting.getComission()).to.changeEtherBalance(owner, comission)
+//      console.log()
     })
   })
 

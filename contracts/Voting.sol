@@ -89,7 +89,7 @@ contract Voting {
     function checkWiners(string memory _name) private returns(bool) {
         for (uint i=0; i < votes[_name].candidates.length; i++) {
             uint temp;
-           if (votes[_name].voices[votes[_name].candidates[i]] == votes[_name].best) {
+            if (votes[_name].voices[votes[_name].candidates[i]] == votes[_name].best) {
                temp++;
            }
            if(temp > 1) return false;
@@ -115,6 +115,10 @@ contract Voting {
 
     function showWinner(string memory _name) external view returns(address payable) {
         return votes[_name].win;
+    }
+
+    function showCandidateVoices(string memory  _name, address _candidate) external view returns(uint) {
+        return votes[_name].voices[_candidate];
     }
 
   //  function startOfVoting(string memory _name) external view returns()
