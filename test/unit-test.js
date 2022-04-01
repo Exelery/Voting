@@ -75,7 +75,21 @@ describe("Voting", function () {
       await expect( await hardhatVoting.getComission()).to.changeEtherBalance(owner, comission)
 //      console.log()
     })
+
+    it("should return winner and winner voices", async() =>{
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      await hardhatVoting.vote("test", addr1.address, { value: ethers.utils.parseEther('0.01')})
+      await hardhatVoting.connect(addr2).vote("test", addr2.address, { value: ethers.utils.parseEther('0.01')})    
+      await hardhatVoting.connect(addr3).vote("test", addr2.address, { value: ethers.utils.parseEther('0.01')})    
+      expect(await hardhatVoting.showWinner("test")).to.equal(addr2.address)
+      expect(await hardhatVoting.showCandidateVoices("test", addr2.address)).to.equal(2)
+
+      console.log(await hardhatVoting.showWinner("test"), " has ", await hardhatVoting.showCandidateVoices("test", addr2.address), " voices" )
+
+    })
   })
+
+  
 
 
 
