@@ -23,7 +23,9 @@ contract Voting {
 
     mapping(string => Vote) votes;
 
-    event Winner(address);
+    event CreateVoting(string _name, uint _time);
+    event Voted(address _candidate, uint _voices, address _voter);
+    event Finish(string _name, address _winner, uint _voices);
 
 
     
@@ -53,6 +55,8 @@ contract Voting {
            votes[_name].candidates.push(_candidates[i]);
            votes[_name].isCandidate[_candidates[i]] = true;           
         }
+
+        emit CreateVoting(_name, block.timestamp);
         
 
     
@@ -73,8 +77,7 @@ contract Voting {
             votes[_name].win = payable(_candidate);
             votes[_name].best = votes[_name].voices[_candidate];
         }
- //       if(votes[_name].voices[_candidate] == votes[_name].best && )
-
+        emit Voted(_candidate,votes[_name].voices[_candidate], msg.sender);
     }
 
     function finishVote(string memory _name) external isActive(_name) {
@@ -83,6 +86,8 @@ contract Voting {
         votes[_name].comission = votes[_name].total / 10 ;
         votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
         votes[_name].active = false;
+
+        emit Finish(_name, votes[_name].win, votes[_name].voices[votes[_name].win]);
         
     }
 
@@ -121,7 +126,11 @@ contract Voting {
         return votes[_name].voices[_candidate];
     }
 
-  //  function startOfVoting(string memory _name) external view returns()
+    function showAllVotes() external view returns(string[]memory) {
+        return allVotes;
+        
+    }
+
 
 
    

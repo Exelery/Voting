@@ -65,7 +65,6 @@ describe("Voting", function () {
     it("should revert because it not time yet", async() =>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
       await expect( hardhatVoting.connect(addr2).finishVote("test")).to.be.revertedWith("It's not the time")
- //     await expect( hardhatVoting.connect(addr2).finishVote("test")).to.be.revertedWith("There is only one winner")
 
     })
     it("Should send comission", async() =>{
@@ -86,6 +85,14 @@ describe("Voting", function () {
 
       console.log(await hardhatVoting.showWinner("test"), " has ", await hardhatVoting.showCandidateVoices("test", addr2.address), " voices" )
 
+    })
+    it("should show all votes", async() => {
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      await hardhatVoting.addVoting("test2", [addr1.address, addr2.address])
+      await hardhatVoting.addVoting("test3", [addr1.address, addr2.address])
+
+      console.log(await hardhatVoting.showAllVotes())
+      await expect(await hardhatVoting.showAllVotes()+ " ").to.equal(["test","test2","test3"]+ " ")
     })
   })
 
