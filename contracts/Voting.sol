@@ -1,6 +1,8 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
+
+
 contract Voting {
     address  payable public owner;
     uint public totalComission;
@@ -17,6 +19,8 @@ contract Voting {
         mapping(address => uint) voices;
         mapping(address => bool) alreadyVoted;
         mapping(address => bool) isCandidate;
+        address lastWinner;
+        bool doubleWinner;
 
 
     }
@@ -48,6 +52,7 @@ contract Voting {
 
     function addVoting(string memory _name, address[] calldata _candidates ) external onlyOwner{
  //       Vote storage test = votes[_name];
+        require(votes[_name].candidates.length == 0, "The voting is already exist");
         votes[_name].date = block.timestamp;
         votes[_name].active = true;
         allVotes.push(_name);
@@ -74,15 +79,25 @@ contract Voting {
         totalComission += msg.value /10;
 
         if(votes[_name].voices[_candidate] > votes[_name].best) {
-            votes[_name].win = payable(_candidate);
-            votes[_name].best = votes[_name].voices[_candidate];
+            if(votes[_name].lastWinner != msg.sender && votes[_name].best == votes[_name].voices[_candidate] ) {
+                votes[_name].doubleWinner == true;
+            }
+            else {
+                votes[_name].win = payable(_candidate);
+                votes[_name].doubleWinner == false;
+                votes[_name].lastWinner = msg.sender;
+                votes[_name].best = votes[_name].voices[_candidate];
+
+
+            }
+            
         }
         emit Voted(_candidate,votes[_name].voices[_candidate], msg.sender);
     }
 
     function finishVote(string memory _name) external isActive(_name) {
         require(block.timestamp >= votes[_name].date + 3 days, "It's not the time");
-        require(checkWiners(_name), "There is only one winner");
+        require(!votes[_name].doubleWinner, "There is only one winner");
         votes[_name].comission = votes[_name].total / 10 ;
         votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
         votes[_name].active = false;
@@ -91,16 +106,6 @@ contract Voting {
         
     }
 
-    function checkWiners(string memory _name) private returns(bool) {
-        for (uint i=0; i < votes[_name].candidates.length; i++) {
-            uint temp;
-            if (votes[_name].voices[votes[_name].candidates[i]] == votes[_name].best) {
-               temp++;
-           }
-           if(temp > 1) return false;
-        }
-        return true;
-    }
 
     function getComission() external onlyOwner{
         owner.transfer(totalComission);

@@ -42,6 +42,11 @@ describe("Voting", function () {
     it("revert if no owner call", async() => {
       await expect( hardhatVoting.connect(addr2).addVoting("test", [addr1.address, addr2.address])).to.be.revertedWith('You are not an owner')
     })
+    it("should revert because voting already exist", async()=> {
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])  
+      console.log(await hardhatVoting.showCandidates("test").length )    
+      await expect( await hardhatVoting.addVoting("test", [addr1.address, addr2.address])).to.be.revertedWith('The voting is already exist')
+    })
   })
 
   describe("testing vote finction", function() {
