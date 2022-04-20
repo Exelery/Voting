@@ -1,3 +1,4 @@
+const { expect } = require('chai');
 const { ethers } = require('ethers');
 const { task } = require('hardhat/config');
 
@@ -35,9 +36,11 @@ task("finishVoting", "You want to end voting?")
     .setAction(async (taskArgs) =>{
         const Mycontract = await ethers.getContractFactory("Voting")
         const contract = await MyContract.attach(taskArgs.address)
+
         await contract.finishVote(taskArgs.name)
         console.log("The voting ", taskArgs.name, " ends")
         console.log('The winner is ', await contract.showWinner(taskArgs.name))
+
     })
 
 task("getComission", "This can withdraw all comission on owner wallet")

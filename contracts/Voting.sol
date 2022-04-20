@@ -1,5 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
+//import "hardhat/console.sol";
 
 
 
@@ -8,9 +9,9 @@ contract Voting {
     uint public totalComission;
     string[] public allVotes;
 
-    struct Vote {
-        address[] candidates;
+    struct  Vote {
         bool active;
+        address[] candidates;
         uint total;
         uint date;
         uint best;
@@ -21,11 +22,12 @@ contract Voting {
         mapping(address => bool) isCandidate;
         address lastWinner;
         bool doubleWinner;
+        bool end;
 
 
     }
 
-    mapping(string => Vote) votes;
+    mapping(string => Vote) public votes;
 
     event CreateVoting(string _name, uint _time);
     event Voted(address _candidate, uint _voices, address _voter);
@@ -36,6 +38,11 @@ contract Voting {
 
     modifier onlyOwner() {
         require(owner == msg.sender, "You are not an owner");
+        _;
+    }
+
+    modifier isNotEnded( string memory _name) {
+        require(!votes[_name].end, "Voting is Ended");
         _;
     }
 
@@ -50,9 +57,8 @@ contract Voting {
       }
 
 
-    function addVoting(string memory _name, address[] calldata _candidates ) external onlyOwner{
- //       Vote storage test = votes[_name];
-        require(votes[_name].candidates.length == 0, "The voting is already exist");
+    function addVoting(string memory _name, address[] calldata _candidates ) external onlyOwner isNotEnded(_name){
+        require(!votes[_name].active, 'Voting is alredy exist');
         votes[_name].date = block.timestamp;
         votes[_name].active = true;
         allVotes.push(_name);
@@ -78,18 +84,15 @@ contract Voting {
         votes[_name].alreadyVoted[msg.sender] = true;
         totalComission += msg.value /10;
 
-        if(votes[_name].voices[_candidate] > votes[_name].best) {
-            if(votes[_name].lastWinner != msg.sender && votes[_name].best == votes[_name].voices[_candidate] ) {
-                votes[_name].doubleWinner == true;
-            }
-            else {
+        if(votes[_name].voices[_candidate] >= votes[_name].best) {
+            if(votes[_name].lastWinner != _candidate && votes[_name].best == votes[_name].voices[_candidate] ) {
+                votes[_name].doubleWinner = true;
+            } else {
                 votes[_name].win = payable(_candidate);
-                votes[_name].doubleWinner == false;
-                votes[_name].lastWinner = msg.sender;
+                votes[_name].doubleWinner = false;
+                votes[_name].lastWinner = _candidate;
                 votes[_name].best = votes[_name].voices[_candidate];
-
-
-            }
+           }
             
         }
         emit Voted(_candidate,votes[_name].voices[_candidate], msg.sender);
@@ -99,18 +102,26 @@ contract Voting {
         require(block.timestamp >= votes[_name].date + 3 days, "It's not the time");
         require(!votes[_name].doubleWinner, "There is only one winner");
         votes[_name].comission = votes[_name].total / 10 ;
-        votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
+//        votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
+        (bool _success,) = votes[_name].win.call{value: votes[_name].total - votes[_name].comission}("");
+        require(_success, "Transfer failed.");
+        votes[_name].end = true;
         votes[_name].active = false;
 
         emit Finish(_name, votes[_name].win, votes[_name].voices[votes[_name].win]);
         
     }
+    
 
 
     function getComission() external onlyOwner{
-        owner.transfer(totalComission);
+        (bool _success, ) = owner.call{value: totalComission}("");
+        require(_success, "Transfer failed.");
+
         totalComission = 0;
     }
+
+    
     function showComission() public view returns(uint) {
         return totalComission;
     }
@@ -119,8 +130,9 @@ contract Voting {
         return votes[_name].candidates;
     }
 
+
     function checkActive(string memory _name) external view returns(bool) {
-        return votes[_name].active;
+        return !votes[_name].end;
     }
 
     function showWinner(string memory _name) external view returns(address payable) {
@@ -135,6 +147,18 @@ contract Voting {
         return allVotes;
         
     }
+    function isDoubleWinner(string memory _name) external view returns(bool) {
+        return votes[_name].doubleWinner;
+    }
+
+    function showBestVoices(string memory _name) external view returns(uint) {
+        return votes[_name].best;
+    }
+
+    function showLastWinner(string memory _name) external view returns(address) {
+        return votes[_name].lastWinner;
+    }
+
 
 
 
