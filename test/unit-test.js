@@ -116,6 +116,13 @@ describe("Voting", function () {
       await expect( await hardhatVoting.getComission()).to.changeEtherBalance(owner, comission)
 //      console.log()
     })
+    it("should revert because of incorrect comission", async()=>{
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      await hardhatVoting.vote("test", addr1.address, { value: fund})
+      const comission = await hardhatVoting.showComission()
+      await hardhatVoting.getComission()
+      await expect(hardhatVoting.getComission()).to.be.revertedWith("There is no comission")
+    })
 
     it("should return winner and winner voices", async() =>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
@@ -148,7 +155,7 @@ describe("Voting", function () {
       await expect(await hardhatVoting.finishVote("test")).to.emit(hardhatVoting, "Finish").withArgs("test", winner, 1)
     })
 
-    it("should revert because the voting has no winners", async() => {
+    it("should revert because the voting has no one winner", async() => {
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
       await hardhatVoting.vote("test", addr1.address, { value: fund})
       console.log( await hardhatVoting.isDoubleWinner("test"), await hardhatVoting.showWinner("test"),

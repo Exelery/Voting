@@ -119,6 +119,7 @@ contract Voting {
 
 
     function getComission() external onlyOwner{
+        require(totalComission > 0, "There is no comission");
         (bool _success, ) = owner.call{value: totalComission}("");
         require(_success, "Transfer failed.");
 
