@@ -1,10 +1,13 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 //import "hardhat/console.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
 
 
-contract Voting {
+
+
+contract Voting is Pausable{
     address  payable public owner;
     uint public totalComission;
     string[] public allVotes;
@@ -75,7 +78,7 @@ contract Voting {
         
     }
 
-    function vote(string memory _name, address  _candidate) external payable isActive(_name) {
+    function vote(string memory _name, address  _candidate) external payable isActive(_name) whenNotPaused{
         require(!votes[_name].alreadyVoted[msg.sender], "Already voted" );
         require(msg.value == .01 ether, "You have to send 0.01 eth");
         require(votes[_name].isCandidate[_candidate], "It's not a candidate" );
@@ -99,7 +102,7 @@ contract Voting {
         emit Voted(_candidate,votes[_name].voices[_candidate], msg.sender);
     }
 
-    function finishVote(string memory _name) external isActive(_name) {
+    function finishVote(string memory _name) external isActive(_name) whenNotPaused{
         require(block.timestamp >= votes[_name].startAt + 3 days, "It's not the time");
         require(!votes[_name].doubleWinner, "There is only one winner");
         votes[_name].comission = uint128(votes[_name].total / 10) ;
@@ -124,6 +127,18 @@ contract Voting {
         require(_success, "Transfer failed.");
 
         totalComission = 0;
+    }
+
+    function pause() external onlyOwner whenNotPaused {
+        _pause();
+    }
+
+    function unPause() external onlyOwner whenPaused {
+        _unpause();
+    }
+
+    receive()  external payable {
+        totalComission += msg.value;
     }
 
     

@@ -181,6 +181,13 @@ describe("Voting", function () {
 
     
   })
+  describe("check pause", async()=>{
+    it("should revert because of pause", async()=> {
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      await hardhatVoting.pause()
+      await expect( hardhatVoting.vote("test", addr1.address, { value: fund})).to.revertedWith("Pausable: paused")
+    })
+  })
 
   
 

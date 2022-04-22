@@ -32,10 +32,9 @@ module.exports = {
 
   gasReporter: {
     enabled: (process.env.REPORT_GAS) ? true : false,
-    noColors: true,
+   // noColors: true,
     showTimeSpent: true,
     showMethodSig: true,
-    onlyCalledMethods: false,
     currency: 'USD',
     coinmarketcap: CMP_API,
     },
