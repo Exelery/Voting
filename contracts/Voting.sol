@@ -13,9 +13,9 @@ contract Voting {
         bool active;
         address[] candidates;
         uint total;
-        uint date;
-        uint best;
-        uint comission;
+        uint startAt;
+        uint128 best;
+        uint128 comission;
         address payable win;
         mapping(address => uint) voices;
         mapping(address => bool) alreadyVoted;
@@ -32,6 +32,7 @@ contract Voting {
     event CreateVoting(string _name, uint _time);
     event Voted(address _candidate, uint _voices, address _voter);
     event Finish(string _name, address _winner, uint _voices);
+    event FinishZero(string _message);
 
 
     
@@ -59,7 +60,7 @@ contract Voting {
 
     function addVoting(string memory _name, address[] calldata _candidates ) external onlyOwner isNotEnded(_name){
         require(!votes[_name].active, 'Voting is alredy exist');
-        votes[_name].date = block.timestamp;
+        votes[_name].startAt = block.timestamp;
         votes[_name].active = true;
         allVotes.push(_name);
         for (uint i=0; i < _candidates.length; i++) {
@@ -91,7 +92,7 @@ contract Voting {
                 votes[_name].win = payable(_candidate);
                 votes[_name].doubleWinner = false;
                 votes[_name].lastWinner = _candidate;
-                votes[_name].best = votes[_name].voices[_candidate];
+                votes[_name].best = uint128(votes[_name].voices[_candidate]);
            }
             
         }
@@ -99,16 +100,19 @@ contract Voting {
     }
 
     function finishVote(string memory _name) external isActive(_name) {
-        require(block.timestamp >= votes[_name].date + 3 days, "It's not the time");
+        require(block.timestamp >= votes[_name].startAt + 3 days, "It's not the time");
         require(!votes[_name].doubleWinner, "There is only one winner");
-        votes[_name].comission = votes[_name].total / 10 ;
-//        votes[_name].win.transfer(votes[_name].total - votes[_name].comission);
-        (bool _success,) = votes[_name].win.call{value: votes[_name].total - votes[_name].comission}("");
-        require(_success, "Transfer failed.");
+        votes[_name].comission = uint128(votes[_name].total / 10) ;
+//        votes[_name].win.transfer(votes[_name].total - votes[_name].comission);        
         votes[_name].end = true;
         votes[_name].active = false;
-
+        if(votes[_name].win == address(0)) {
+            emit FinishZero("No one voted");
+        } else{
+            (bool _success,) = votes[_name].win.call{value: votes[_name].total - votes[_name].comission}("");
+        require(_success, "Transfer failed.");
         emit Finish(_name, votes[_name].win, votes[_name].voices[votes[_name].win]);
+        }
         
     }
     
