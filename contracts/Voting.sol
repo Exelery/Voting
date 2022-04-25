@@ -32,10 +32,11 @@ contract Voting is Pausable{
 
     mapping(string => Vote) public votes;
 
-    event CreateVoting(string _name, uint _time);
-    event Voted(address _candidate, uint _voices, address _voter);
-    event Finish(string _name, address _winner, uint _voices);
-    event FinishZero(string _message);
+    event CreateVoting(string indexed  _name, uint _time);
+    event Voted(address indexed _candidate, uint _voices, address _voter);
+    event Finish(string indexed  _name, address indexed  _winner, uint _voices);
+    event FinishZero(string indexed _name, string _message);
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
 
     
@@ -57,11 +58,23 @@ contract Voting is Pausable{
 
 
     constructor() {
-    owner = payable(msg.sender);
-      }
+        _transferOwnership(msg.owner);
+    }
+
+    function _transferOwnership(address _newOwner) internal {
+        address oldOwner = owner;
+        owner = _newOwner;
+        emit OwnershipTransferred(oldOwner, _newOwner);
+    }
+
+    function transferOwnership(address _newOwner) public onlyOwner {
+        require(_newOwner != address(0), "Ownable: new owner is the zero address");
+        _transferOwnership(_newOwner);
+    }
 
 
-    function addVoting(string memory _name, address[] calldata _candidates ) external onlyOwner isNotEnded(_name){
+
+    function addVoting(string calldata _name, address[] calldata _candidates ) external onlyOwner isNotEnded(_name){
         require(!votes[_name].active, 'Voting is alredy exist');
         votes[_name].startAt = block.timestamp;
         votes[_name].active = true;
@@ -78,7 +91,7 @@ contract Voting is Pausable{
         
     }
 
-    function vote(string memory _name, address  _candidate) external payable isActive(_name) whenNotPaused{
+    function vote(string calldata _name, address calldata  _candidate) external payable isActive(_name) whenNotPaused{
         require(!votes[_name].alreadyVoted[msg.sender], "Already voted" );
         require(msg.value == .01 ether, "You have to send 0.01 eth");
         require(votes[_name].isCandidate[_candidate], "It's not a candidate" );
@@ -102,7 +115,7 @@ contract Voting is Pausable{
         emit Voted(_candidate,votes[_name].voices[_candidate], msg.sender);
     }
 
-    function finishVote(string memory _name) external isActive(_name) whenNotPaused{
+    function finishVote(string calldata _name) external isActive(_name) whenNotPaused{
         require(block.timestamp >= votes[_name].startAt + 3 days, "It's not the time");
         require(!votes[_name].doubleWinner, "There is only one winner");
         votes[_name].comission = uint128(votes[_name].total / 10) ;
@@ -110,7 +123,7 @@ contract Voting is Pausable{
         votes[_name].end = true;
         votes[_name].active = false;
         if(votes[_name].win == address(0)) {
-            emit FinishZero("No one voted");
+            emit FinishZero(_name, "No one voted");
         } else{
             (bool _success,) = votes[_name].win.call{value: votes[_name].total - votes[_name].comission}("");
         require(_success, "Transfer failed.");
@@ -146,20 +159,20 @@ contract Voting is Pausable{
         return totalComission;
     }
 
-    function showCandidates(string memory _name) external view returns(address[] memory) {
+    function showCandidates(string calldata _name) external view returns(address[] memory) {
         return votes[_name].candidates;
     }
 
 
-    function checkActive(string memory _name) external view returns(bool) {
+    function checkActive(string calldata _name) external view returns(bool) {
         return !votes[_name].end;
     }
 
-    function showWinner(string memory _name) external view returns(address payable) {
+    function showWinner(string calldata _name) external view returns(address payable) {
         return votes[_name].win;
     }
 
-    function showCandidateVoices(string memory  _name, address _candidate) external view returns(uint) {
+    function showCandidateVoices(string calldata  _name, address calldata _candidate) external view returns(uint) {
         return votes[_name].voices[_candidate];
     }
 
@@ -167,15 +180,15 @@ contract Voting is Pausable{
         return allVotes;
         
     }
-    function isDoubleWinner(string memory _name) external view returns(bool) {
+    function isDoubleWinner(string calldata _name) external view returns(bool) {
         return votes[_name].doubleWinner;
     }
 
-    function showBestVoices(string memory _name) external view returns(uint) {
+    function showBestVoices(string calldata _name) external view returns(uint) {
         return votes[_name].best;
     }
 
-    function showLastWinner(string memory _name) external view returns(address) {
+    function showLastWinner(string calldata _name) external view returns(address) {
         return votes[_name].lastWinner;
     }
 

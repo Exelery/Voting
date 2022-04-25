@@ -176,7 +176,7 @@ describe("Voting", function () {
     it("should end with another event", async()=>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
       await ethers.provider.send('evm_increaseTime', [threeDays])
-      await expect(hardhatVoting.finishVote("test")).to.emit(hardhatVoting, "FinishZero").withArgs("No one voted")
+      await expect(hardhatVoting.finishVote("test")).to.emit(hardhatVoting, "FinishZero").withArgs("test", "No one voted")
     }) 
 
     
