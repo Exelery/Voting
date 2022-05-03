@@ -9,6 +9,10 @@ async function main() {
   const voting = await Voting.deploy();
 
   console.log("Voting address:", voting.address);
+
+  saveFrontendFiles({
+    Voting: voting
+  })
 }
 
 main()
@@ -17,3 +21,13 @@ main()
     console.error(error);
     process.exit(1);
   });
+
+
+/*
+function saveFrontendFiles(contract) {
+  const contractDir = path.join(__dirname, '/..', front/contracts)
+  if(!fs.exstsSync(contractDir)) {
+    fs.mkdirSync(contractDir)
+  }
+} 
+*/

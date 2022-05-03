@@ -21,7 +21,7 @@ task("addVoting", "Create new Voting")
         const [singer ] = await ethers.getSigners();
         console.log("Account balance:", (await singer.getBalance()).toString());
 
-        const candidates = taskArgs.candidates.split(",") 
+        const candidates = taskArgs.candidates.split(" ") 
         const Mycontract = await ethers.getContractFactory("Voting")
 
         const contract = await Mycontract.attach(ADDRESS);
