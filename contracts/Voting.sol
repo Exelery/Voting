@@ -11,6 +11,7 @@ contract Voting is Pausable{
     address  payable public owner;
     uint public totalComission;
     string[] public allVotes;
+//    uint activeVotes;
 
     struct  Vote {
         bool active;
@@ -58,12 +59,12 @@ contract Voting is Pausable{
 
 
     constructor() {
-        _transferOwnership(msg.owner);
+        _transferOwnership(msg.sender);
     }
 
     function _transferOwnership(address _newOwner) internal {
         address oldOwner = owner;
-        owner = _newOwner;
+        owner = payable(_newOwner);
         emit OwnershipTransferred(oldOwner, _newOwner);
     }
 
@@ -79,8 +80,9 @@ contract Voting is Pausable{
         votes[_name].startAt = block.timestamp;
         votes[_name].active = true;
         allVotes.push(_name);
+        votes[_name].candidates = _candidates;
         for (uint i=0; i < _candidates.length; i++) {
-           votes[_name].candidates.push(_candidates[i]);
+ //          votes[_name].candidates.push(_candidates[i]);
            votes[_name].isCandidate[_candidates[i]] = true;           
         }
 
@@ -91,7 +93,7 @@ contract Voting is Pausable{
         
     }
 
-    function vote(string calldata _name, address calldata  _candidate) external payable isActive(_name) whenNotPaused{
+    function vote(string calldata _name, address _candidate) external payable isActive(_name) whenNotPaused{
         require(!votes[_name].alreadyVoted[msg.sender], "Already voted" );
         require(msg.value == .01 ether, "You have to send 0.01 eth");
         require(votes[_name].isCandidate[_candidate], "It's not a candidate" );
@@ -165,6 +167,7 @@ contract Voting is Pausable{
 
 
     function checkActive(string calldata _name) external view returns(bool) {
+        require(vote[_name].candidates.length> 0, "The voting isn't exist");
         return !votes[_name].end;
     }
 
@@ -172,7 +175,7 @@ contract Voting is Pausable{
         return votes[_name].win;
     }
 
-    function showCandidateVoices(string calldata  _name, address calldata _candidate) external view returns(uint) {
+    function showCandidateVoices(string calldata  _name, address _candidate) external view returns(uint) {
         return votes[_name].voices[_candidate];
     }
 
@@ -191,6 +194,25 @@ contract Voting is Pausable{
     function showLastWinner(string calldata _name) external view returns(address) {
         return votes[_name].lastWinner;
     }
+
+
+ /**   function showAllActiveVotes() external view returns(string[]) {
+        uint length = allVotes.length;
+        string[] memory allActive = new string[](length);
+        uint b = 0;
+        
+        for(uint i = 0; i < length; i++) {
+            if(votes[allVotes[i]].active) {
+                allActive[b] = allVotes[i];
+                b++;
+            }
+        }
+
+        string[] calldata temp = new string[] ;
+        temp = allActive;
+        return temp[:b];
+    }
+     */
 
 
 

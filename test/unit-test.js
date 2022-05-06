@@ -178,12 +178,22 @@ describe("Voting", function () {
       await ethers.provider.send('evm_increaseTime', [threeDays])
       await expect(hardhatVoting.finishVote("test")).to.emit(hardhatVoting, "FinishZero").withArgs("test", "No one voted")
     }) 
+    xit("should show all active votings", async()=>{
+      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      await hardhatVoting.addVoting("tes2", [addr1.address, addr2.address])
+      await hardhatVoting.addVoting("tes3", [addr1.address, addr2.address])
+      await ethers.provider.send('evm_increaseTime', [threeDays])
+      await hardhatVoting.finishVote("test")
+      console.log(await hardhatVoting.showAllActiveVotes())
 
+    })
     
   })
   describe("check pause", async()=>{
     it("should revert because of pause", async()=> {
-      await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      let tx = await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
+      let receipt = await tx.wait()
+      console.log(receipt.gasUsed)
       await hardhatVoting.pause()
       await expect( hardhatVoting.vote("test", addr1.address, { value: fund})).to.revertedWith("Pausable: paused")
     })
