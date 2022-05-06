@@ -42,7 +42,7 @@ describe("Voting", function () {
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
 //      console.log(await hardhatVoting.showCandidates("test"))
 //      console.log(addr1.address, addr2.address)      
-       expect(await  hardhatVoting.showCandidates("test") + " ").to.equal([addr1.address, addr2.address] + " ")
+       expect(await  hardhatVoting.showCandidates("test")).to.eql([addr1.address, addr2.address])
     })
 
     it("revert if no owner call", async() => {
@@ -141,7 +141,7 @@ describe("Voting", function () {
       await hardhatVoting.addVoting("test3", [addr1.address, addr2.address])
 
       console.log(await hardhatVoting.showAllVotes())
-      await expect(await hardhatVoting.showAllVotes()+ " ").to.equal(["test","test2","test3"]+ " ")
+      await expect(await hardhatVoting.showAllVotes()).to.eql(["test","test2","test3"])
     })
 
     it("should end the voting", async() => {
@@ -178,13 +178,14 @@ describe("Voting", function () {
       await ethers.provider.send('evm_increaseTime', [threeDays])
       await expect(hardhatVoting.finishVote("test")).to.emit(hardhatVoting, "FinishZero").withArgs("test", "No one voted")
     }) 
-    xit("should show all active votings", async()=>{
+    it("should show all active votings", async()=>{
       await hardhatVoting.addVoting("test", [addr1.address, addr2.address])
       await hardhatVoting.addVoting("tes2", [addr1.address, addr2.address])
       await hardhatVoting.addVoting("tes3", [addr1.address, addr2.address])
       await ethers.provider.send('evm_increaseTime', [threeDays])
       await hardhatVoting.finishVote("test")
       console.log(await hardhatVoting.showAllActiveVotes())
+      expect(await hardhatVoting.showAllActiveVotes()).to.eql([ 'tes2', 'tes3' ])
 
     })
     

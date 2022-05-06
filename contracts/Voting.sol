@@ -11,7 +11,7 @@ contract Voting is Pausable{
     address  payable public owner;
     uint public totalComission;
     string[] public allVotes;
-//    uint activeVotes;
+    uint activeVotes;
 
     struct  Vote {
         bool active;
@@ -85,6 +85,7 @@ contract Voting is Pausable{
  //          votes[_name].candidates.push(_candidates[i]);
            votes[_name].isCandidate[_candidates[i]] = true;           
         }
+        activeVotes++;
 
         emit CreateVoting(_name, block.timestamp);
         
@@ -124,12 +125,15 @@ contract Voting is Pausable{
 //        votes[_name].win.transfer(votes[_name].total - votes[_name].comission);        
         votes[_name].end = true;
         votes[_name].active = false;
+        activeVotes--;
+
         if(votes[_name].win == address(0)) {
             emit FinishZero(_name, "No one voted");
         } else{
             (bool _success,) = votes[_name].win.call{value: votes[_name].total - votes[_name].comission}("");
-        require(_success, "Transfer failed.");
-        emit Finish(_name, votes[_name].win, votes[_name].voices[votes[_name].win]);
+            require(_success, "Transfer failed.");
+        
+             emit Finish(_name, votes[_name].win, votes[_name].voices[votes[_name].win]);
         }
         
     }
@@ -167,7 +171,7 @@ contract Voting is Pausable{
 
 
     function checkActive(string calldata _name) external view returns(bool) {
-        require(vote[_name].candidates.length> 0, "The voting isn't exist");
+        require(votes[_name].candidates.length> 0, "The voting isn't exist");
         return !votes[_name].end;
     }
 
@@ -196,23 +200,21 @@ contract Voting is Pausable{
     }
 
 
- /**   function showAllActiveVotes() external view returns(string[]) {
-        uint length = allVotes.length;
-        string[] memory allActive = new string[](length);
+   function showAllActiveVotes() external view returns(string[] memory) {
+
+        string[] memory allActive = new string[](activeVotes);
         uint b = 0;
         
-        for(uint i = 0; i < length; i++) {
+        for(uint i = 0; i < allVotes.length; i++) {
             if(votes[allVotes[i]].active) {
                 allActive[b] = allVotes[i];
                 b++;
             }
         }
 
-        string[] calldata temp = new string[] ;
-        temp = allActive;
-        return temp[:b];
+        return allActive;
     }
-     */
+     
 
 
 
