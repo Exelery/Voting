@@ -198,6 +198,12 @@ describe("Voting", function () {
       await hardhatVoting.pause()
       await expect( hardhatVoting.vote("test", addr1.address, { value: fund})).to.revertedWith("Pausable: paused")
     })
+    it("check uint type of address", async()=> {
+      console.log(await hardhatVoting.getOwnerUint())
+      console.log(typeof(await hardhatVoting.getOwnerUint()))
+      
+      
+    })
   })
 
   

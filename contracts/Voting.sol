@@ -1,6 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
-//import "hardhat/console.sol";
+import "hardhat/console.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
 
@@ -12,6 +12,7 @@ contract Voting is Pausable{
     uint public totalComission;
     string[] public allVotes;
     uint activeVotes;
+    bool locked;
 
     struct  Vote {
         bool active;
@@ -40,7 +41,12 @@ contract Voting is Pausable{
     event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
 
 
-    
+    modifier NoReentancy() {
+        require(!locked, "no reentancy");
+        locked = true;
+        _;
+        locked = false;
+    }    
 
     modifier onlyOwner() {
         require(owner == msg.sender, "You are not an owner");
@@ -130,22 +136,26 @@ contract Voting is Pausable{
         if(votes[_name].win == address(0)) {
             emit FinishZero(_name, "No one voted");
         } else{
-            (bool _success,) = votes[_name].win.call{value: votes[_name].total - votes[_name].comission}("");
-            require(_success, "Transfer failed.");
+            uint amount = votes[_name].total - votes[_name].comission;
+            _withdrawTo(votes[_name].win, amount);
         
              emit Finish(_name, votes[_name].win, votes[_name].voices[votes[_name].win]);
         }
         
     }
     
+    function _withdrawTo(address payable _to, uint _amount) private NoReentancy {
+        (bool _success,) = _to.call{value: _amount}("");
+            require(_success, "Transfer failed.");
+    }
 
 
     function getComission() external onlyOwner{
         require(totalComission > 0, "There is no comission");
-        (bool _success, ) = owner.call{value: totalComission}("");
-        require(_success, "Transfer failed.");
-
+        uint tempComission = totalComission;
         totalComission = 0;
+        _withdrawTo(owner, tempComission);
+        
     }
 
     function pause() external onlyOwner whenNotPaused {
@@ -213,6 +223,14 @@ contract Voting is Pausable{
         }
 
         return allActive;
+    }
+
+    //At our last meeting, someone told me that it is impossible to convert an address to uint
+    // so let's check it out
+    function getOwnerUint() external view returns(uint) {
+        console.log("This is uint" , uint160(address(owner)));
+        return uint(uint160(address(owner)));
+
     }
      
 
